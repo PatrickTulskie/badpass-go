@@ -2,13 +2,15 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 )
 
-var wordlist10k []string
+var wordlist10kHashes []string
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1>Welcome to the password checker!</h1>"))
@@ -16,9 +18,12 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 func passwordCheckHandler(w http.ResponseWriter, r *http.Request) {
 	testWord := r.URL.Query().Get("password")
+	hasher := sha1.New()
+	hasher.Write([]byte(testWord))
+	testHash := hex.EncodeToString(hasher.Sum(nil))
 
-	for _, word := range wordlist10k {
-		if word == testWord {
+	for _, hash := range wordlist10kHashes {
+		if hash == testHash {
 			w.Write([]byte("{ common: true }"))
 			return
 		}
@@ -27,26 +32,25 @@ func passwordCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("{ common: false }"))
 }
 
-func setup10kWordList() {
-	fmt.Println("Reading Wordlist...")
+func loadHashes() {
+	fmt.Println("Reading Hash List...")
 
-	file, err := os.Open("10k-most-common.txt")
+	file, err := os.Open("10k-most-common-sha1.txt")
 	if err != nil {
 		log.Fatalf("couldn't open wordlist")
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 
 	for scanner.Scan() {
-		wordlist10k = append(wordlist10k, scanner.Text())
+		wordlist10kHashes = append(wordlist10kHashes, scanner.Text())
 	}
-
-	file.Close()
 }
 
 func main() {
-	setup10kWordList()
+	loadHashes()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/password-check", passwordCheckHandler)
