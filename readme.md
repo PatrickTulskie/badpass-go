@@ -8,7 +8,7 @@ To use, download the 10k most common passwords first:
 
 Precompute Hashes With:
 
-    go run precompute_hashes.go
+    go run precomputeHashes.go
 
 Then run the server with
 
