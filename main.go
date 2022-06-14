@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha1"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,25 +18,34 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func passwordCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// Setup the default response
+	response := map[string]interface{}{
+		"common": false,
+	}
+
+	// Get the query param, hash it
 	testWord := r.URL.Query().Get("password")
 	hasher := sha1.New()
 	hasher.Write([]byte(testWord))
 	testHash := hex.EncodeToString(hasher.Sum(nil))
 
+	// Look for it in the list of hashes, break if found
 	for _, hash := range wordlist10kHashes {
 		if hash == testHash {
-			w.Write([]byte("{ common: true }"))
-			return
+			response["common"] = true
+			break
 		}
 	}
 
-	w.Write([]byte("{ common: false }"))
+	// Convert response to JSON and send it
+	responseJson, _ := json.Marshal(response)
+	w.Write([]byte(responseJson))
 }
 
 func loadHashes() {
 	fmt.Println("Reading Hash List...")
 
-	file, err := os.Open("10k-most-common-sha1.txt")
+	file, err := os.Open("data/10k-most-common-sha1.txt")
 	if err != nil {
 		log.Fatalf("couldn't open wordlist")
 	}
