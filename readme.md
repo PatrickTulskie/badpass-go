@@ -14,8 +14,9 @@ Then run the server with
 
     go run main.go
 
-Finally, to query it
+Finally, to query it, just use the index page or cURL
 
-    curl "localhost:8080/password-check?password=butthead"
+    curl -v -XPOST localhost:8080/password-check -d 'hash=583adc8aebb04a62cc76e71314b46474113be146'
+    curl -v -XPOST localhost:8080/password-check -d 'password=butthead'
 
 Enjoy
