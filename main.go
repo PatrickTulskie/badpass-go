@@ -13,10 +13,6 @@ import (
 
 var wordlist10kHashes []string
 
-// func indexHandler(w http.ResponseWriter, r *http.Request) {
-// 	w.Write([]byte("<h1>Welcome to the password checker!</h1>"))
-// }
-
 func passwordCheckHandler(response http.ResponseWriter, request *http.Request) {
 	responseMap := map[string]interface{}{}
 	if request.Method == "POST" {
@@ -24,14 +20,12 @@ func passwordCheckHandler(response http.ResponseWriter, request *http.Request) {
 		testHash := request.Form.Get("hash")
 		if len(testHash) == 0 {
 			testWord := request.Form.Get("password")
-			fmt.Println("Word: " + testWord)
 			if len(testWord) == 0 {
 				response.WriteHeader(400)
 				return
 			}
 			testHash = hashPassword(testWord)
 		}
-		fmt.Println("Hash: " + testHash)
 		responseMap["common"] = findHash(testHash)
 
 	} else {
